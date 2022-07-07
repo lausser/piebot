@@ -184,6 +184,10 @@ def pre_flight_checks():
         sys.exit()
 
     # Checks whether the API key and API secret have been defined
+    if "API_KEY" in os.environ:
+        api_key = os.environ["API_KEY"]
+    if "API_SECRET" in os.environ:
+        api_secret = os.environ["API_SECRET"]
     try:
         api_key and api_secret
     except NameError:
