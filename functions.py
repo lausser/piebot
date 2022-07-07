@@ -6,6 +6,7 @@ import signal
 import sys
 from termcolor import colored
 import time
+import os
 
 from _config import *
 
