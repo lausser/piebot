@@ -267,7 +267,7 @@ def pre_flight_checks():
         "method": "private/get-account-summary",
         "api_key": api_key,
         "params": {
-#            "currency": "USDT"
+            "currency": "USDT"
         },
         "nonce": int(time.time() * 1000)
     }
@@ -280,14 +280,39 @@ def pre_flight_checks():
     if init_status == 200:
         # The bot can connect to the account, has been started, and is waiting to be called
         print(colored("Pre-flight checks successful", "green"))
+        print(get_account_details())
+
+    else:
+        # Could not connect to the account
+        print(colored("Could not connect to your account. Please ensure the API key and API secret are correct and have the right privileges", "red"))
+        sys.exit()
+
+
+def get_account_details():
+    # return a list of positions with keys coin, balance, price each
+    positions = []
+    init_request = {
+        "id": 100,
+        "method": "private/get-account-summary",
+        "api_key": api_key,
+        "params": {
+#            "currency": "USDT"
+        },
+        "nonce": int(time.time() * 1000)
+    }
+
+    init_response = requests.post("https://api.crypto.com/v2/private/get-account-summary",
+                                  headers={"Content-type": "application/json"},
+                                  data=json.dumps(sign_request(req=init_request)))
+    init_status = init_response.status_code
+
+    if init_status == 200:
         summary_data = init_response.json()
         ticker_request = {
             "id": 100,
             "method": "private/get-account-summary",
             "api_key": api_key,
-            "params": {
-    #            "currency": "USDT"
-            },
+            "params": {},
             "nonce": int(time.time() * 1000)
         }
 
@@ -295,26 +320,27 @@ def pre_flight_checks():
                                   headers={"Content-type": "application/json"},
                                   data=json.dumps(sign_request(req=ticker_request)))
         ticker_status = ticker_response.status_code
-        #print(ticker_response.__dict__)
         ticker_data = ticker_response.json()
-        total_value = 0
         for account in sorted(summary_data["result"]["accounts"], key=lambda x: x["currency"]):
             if account["currency"] == "USDT":
-                print("{} USDT {} = {}USDT".format(account["balance"], 1, account["balance"]))
-                total_value += account["balance"]
+                positions.append({
+                    "coin": "USDT",
+                    "balance": account["balance"],
+                    "price": 1,
+                    "managed": 0,
+                })
             elif account["balance"] > 0.0:
                 pair = account["currency"]+"_USDT"
                 latest_bid = [tick["a"] for tick in ticker_data["result"]["data"] if tick["i"] == pair]
                 if latest_bid:
-                    known = "" if [p for p in pair_list if p[0] == account["currency"]] else " (unhandled)"
-                    print("{} {} {:.4f} = {:.4f}USDT{}".format(account["balance"], account["currency"], latest_bid[0], latest_bid[0]*account["balance"], known))
-                    total_value += latest_bid[0]*account["balance"]
-        print("Total value {:.4f}USDT".format(total_value))
-
-    else:
-        # Could not connect to the account
-        print(colored("Could not connect to your account. Please ensure the API key and API secret are correct and have the right privileges", "red"))
-        sys.exit()
+                    managed = 1 if [p for p in pair_list if p[0] == account["currency"]] else 0
+                    positions.append({
+                        "coin": account["currency"],
+                        "balance": account["balance"],
+                        "price": latest_bid[0],
+                        "managed": managed,
+                    })
+        return positions
 
 
 # Signs private requests

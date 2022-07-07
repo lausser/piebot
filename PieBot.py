@@ -3,8 +3,12 @@ import argparse
 import gc
 import schedule
 import signal
+from prometheus_client import start_http_server, Gauge
 
 pre_flight_checks()
+balance = Counter('coin_balance', 'The amount of coins', ['coin', 'account'])
+price = Counter('coin_price', 'The price of a coin in USDT', ['coin', 'account'])
+
 
 
 # Hard codes the minimum order value
