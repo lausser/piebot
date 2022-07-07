@@ -4,7 +4,7 @@ import json
 import requests
 import signal
 import sys
-from termcolor import colored
+from termcolor import colored as termcolor_colored
 import time
 import os
 
@@ -27,6 +27,12 @@ class StopSignal:
         print(colored("Shutting down...", "cyan"))
         print()
 
+
+def colored(text, color):
+    if not sys.stdin.isatty():
+        return text
+    else:
+        return termcolor_colored(text, color)
 
 # Prints the current time
 def current_time(new_line):
