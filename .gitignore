@@ -11,3 +11,6 @@ venv
 .env
 tests
 _config.py
+
+# lausser
+k3s

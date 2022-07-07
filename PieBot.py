@@ -67,6 +67,8 @@ def buy(pairs):
 
     else:
         print(colored("Not enough USDT available", "yellow"))
+    total_portfolio_value = get_portfolio_value(pairs, True)
+    print("Total portfolio value is {}USDT".format(total_portfolio_value))
 
     gc.collect()
 
@@ -93,6 +95,7 @@ def rebalance(pairs):
 
     # Equally divide the balance by the number of coins, so we know the target value each coin should aim for
     target_per_coin = total_portfolio_value / len(pairs)
+    print("target_per_coin is {}".format(target_per_coin))
 
     buy_orders_data = []
     sell_orders_data = []
@@ -108,6 +111,7 @@ def rebalance(pairs):
             if difference >= min_order_value:
                 if uses_threshold:
                     difference_percentage = (((pair_value - target_per_coin) / target_per_coin) * 100)
+                    print("difference+ of {} is {:.2f} ({:.2f}%%)".format(pair[0], difference, difference_percentage))
 
                     if difference_percentage >= (rebalance_threshold * 100):
                         order_value = difference / coin_price
@@ -123,7 +127,8 @@ def rebalance(pairs):
 
             if difference >= min_order_value:
                 if uses_threshold:
-                    difference_percentage = (((target_per_coin - pair_value) / pair_value) * 100)
+                    difference_percentage = 100 if pair_value == 0 else (((target_per_coin - pair_value) / pair_value) * 100)
+                    print("difference- of {} is {:.2f} ({:.2f}%%)".format(pair[0], difference, difference_percentage))
 
                     if difference_percentage >= (rebalance_threshold * 100):
                         order_value = difference
@@ -189,6 +194,8 @@ def rebalance(pairs):
     del order_data
     del buy_orders_data
     del sell_orders_data
+    total_portfolio_value = get_portfolio_value(pairs, True)
+    print("Total portfolio value is {}USDT".format(total_portfolio_value))
     gc.collect()
 
     print(colored("Waiting to be called...", "cyan"))
