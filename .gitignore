@@ -14,3 +14,7 @@ _config.py
 
 # lausser
 piebot.yml
+release.sh
+build.sh
+Dockerfile
+VERSION
