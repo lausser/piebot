@@ -3,11 +3,12 @@ import argparse
 import gc
 import schedule
 import signal
-from prometheus_client import start_http_server, Gauge
+from prometheus_client import start_http_server, Gauge, Enum
 
 pre_flight_checks()
 balance = Gauge('coin_balance', 'The amount of coins', ['coin', 'account'])
 price = Gauge('coin_price', 'The price of a coin in USDT', ['coin', 'account'])
+state = Enum('coin_state', 'The management state of a coin', ['coin', 'account'], states=['managed', 'unmanaged']) # managed, unmanaged
 
 
 
@@ -205,6 +206,14 @@ def rebalance(pairs):
     print(colored("Waiting to be called...", "cyan"))
 
 
+def update_exporter(pairs):
+    pairs = get_account_details()
+    for pair in pairs:
+        balance.labels(pair["coin"], pair["account"]).set(pair["balance"])
+        price.labels(pair["coin"], pair["account"]).set(pair["price"])
+        state.labels(pair["coin"], pair["account"]).state(pair["state"])
+
+
 if environment == "production":
     print(colored("Waiting to be called...", "cyan"))
 
@@ -213,6 +222,9 @@ if environment == "production":
 
     schedule.every(buy_frequency).hours.at(":30").do(buy, pairs=pair_list)
 
+    schedule.every(5).minutes.do(update_exporter, pairs=pair_list)
+
+    start_http_server(19000)
     stop = StopSignal()
 
     while not stop.stop_now:

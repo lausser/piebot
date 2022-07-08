@@ -324,21 +324,22 @@ def get_account_details():
         for account in sorted(summary_data["result"]["accounts"], key=lambda x: x["currency"]):
             if account["currency"] == "USDT":
                 positions.append({
+                    "account": account_name,
                     "coin": "USDT",
                     "balance": account["balance"],
                     "price": 1,
-                    "managed": 0,
+                    "state": "unmanaged",
                 })
             elif account["balance"] > 0.0:
                 pair = account["currency"]+"_USDT"
                 latest_bid = [tick["a"] for tick in ticker_data["result"]["data"] if tick["i"] == pair]
                 if latest_bid:
-                    managed = 1 if [p for p in pair_list if p[0] == account["currency"]] else 0
                     positions.append({
+                        "account": account_name,
                         "coin": account["currency"],
                         "balance": account["balance"],
                         "price": latest_bid[0],
-                        "managed": managed,
+                        "state": "managed" if [p for p in pair_list if p[0] == account["currency"]] else "unmanaged",
                     })
         return positions
 
