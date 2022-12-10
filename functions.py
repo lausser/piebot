@@ -78,9 +78,11 @@ def get_coin_balance(coin):
 def get_coin_price(pair):
     get_price_response = requests.get("https://api.crypto.com/v2/public/get-ticker?instrument_name=" + pair)
     ticker = json.loads(get_price_response.content)
-    coin_price = ticker["result"]["data"]["b"]
-
-    return coin_price
+    coin_price = ticker["result"]["data"][0]["b"]
+    if coin_price == None:
+        # there is no bid at this moment, take latest trade's price
+        coin_price = ticker["result"]["data"][0]["a"]
+    return float(coin_price)
 
 
 # Gets the details of a coin pair
@@ -95,6 +97,9 @@ def get_pair_details(pair):
     instruments = data["result"]["instruments"]
 
     details = get_instrument(instruments, pair)
+    if details == None:
+        # there is no HNT_USDT any more, try HNT_USD
+        details = get_instrument(instruments, pair.replace("USDT", "USD"))
 
     return details
 
@@ -280,7 +285,8 @@ def pre_flight_checks():
     if init_status == 200:
         # The bot can connect to the account, has been started, and is waiting to be called
         print(colored("Pre-flight checks successful", "green"))
-        print(get_account_details())
+        for position in get_account_details():
+            print("{:<10s} {:20.4f} {:10.4f} = {:10.2f} {:s}".format(position["coin"], position["balance"], float(position["price"]), float(position["balance"]) * float(position["price"]), position["state"]))
 
     else:
         # Could not connect to the account

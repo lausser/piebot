@@ -220,6 +220,7 @@ if environment == "production":
     if rebalance_frequency > 0:
         schedule.every(rebalance_frequency).hours.at(":00").do(rebalance, pairs=pair_list)
 
+
     schedule.every(buy_frequency).hours.at(":30").do(buy, pairs=pair_list)
 
     schedule.every(5).minutes.do(update_exporter, pairs=pair_list)
