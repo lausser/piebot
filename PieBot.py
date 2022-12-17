@@ -34,6 +34,7 @@ else:
 def buy(pairs):
     # Let users know the bot has been called and is running
     print()
+    current_time(True)
     print(colored("Buy", "yellow"))
     print(colored("Placing orders...", "cyan"))
 
@@ -84,6 +85,7 @@ def buy(pairs):
 def rebalance(pairs):
     # Let users know the bot has been called and is running
     print()
+    current_time(True)
     print(colored("Rebalance", "yellow"))
     print(colored("Placing orders...", "cyan"))
 
