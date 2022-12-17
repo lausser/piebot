@@ -1,0 +1,158 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: crypto
+---
+apiVersion: v1
+kind: Secret
+type: Opaque
+data:
+  api_key: HeReisYOUrK3y==
+  api_secret: ANdth3SECr3TsECreT==
+metadata:
+  name: crypto-com-account-piebot-creds
+  namespace: crypto
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  namespace: crypto
+  name: config
+data:
+  _config.py: |
+    account_name = "piebot"
+    environment = "production"
+    # The list of coin pairs you want to trade with.
+    # Please do your own research first.
+    # Do NOT blindly copy this list here and expect
+    # to become a millionaire overnight.
+    pair_list = [
+        ("ADA", "ADA_USDT"),
+        ("AVAX", "AVAX_USDT"),
+        ("BTC", "BTC_USDT"),
+        ("CRO", "CRO_USDT"),
+        ("EGLD", "EGLD_USDT"),
+        ("HNT", "HNT_USD"),
+        ("ICP", "ICP_USDT"),
+        ("NEAR", "NEAR_USDT"),
+        ("SHIB", "SHIB_USDT"),
+        ("WAVES", "WAVES_USDT"),
+        ("XRP", "XRP_USDT"),
+        ("HBAR", "HBAR_USDT"),
+        ("LINK", "LINK_USDT"),
+        ("SOL", "SOL_USDT"),
+        ("UNI", "UNI_USDT"),
+    ]
+    
+    # Sets after how many hours each task should repeat
+    buy_frequency = 2
+    rebalance_frequency = 1
+    
+    # The required value deviation before the coin is rebalanced.  This is a percentage
+    # 0.05 = 5%
+    # 0.15 = 15%
+    rebalance_threshold = 0.03
+    
+    # The USDT value that PieBot will buy for each enabled coin pair in the "Buy" task
+    buy_order_value = 0.50
+    #buy_order_value = 1
+    
+    # How much USDT do you want to keep as a reserve. This is a percentage of the total portfolio balance
+    # 0.05 = 5%
+    # 0.15 = 15%
+    usdt_reserve = 0.02
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: crypto
+  name: piebot
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: piebot
+  template:
+    metadata:
+      labels:
+        app: piebot
+    spec:
+      securityContext:
+        runAsUser: 10000
+        runAsGroup: 10000
+        fsGroup: 20000
+      containers:
+      - name: piebot
+        image: lausser/piebot:1.0.24
+        imagePullPolicy: Always
+        command: ["/usr/local/bin/python"]
+        args: ["-u", "/piebot/PieBot.py"]
+        # This is just in case you want to exec and hack
+        # args: ["/piebot/log.py"]
+        ports:
+        - containerPort: 19000
+          protocol: TCP
+          name: prom-port
+        env:
+        - name: TZ
+          value: Europe/Berlin
+        - name: API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: crypto-com-account-piebot-creds
+              key: api_key
+        - name: API_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: crypto-com-account-piebot-creds
+              key: api_secret
+        volumeMounts:
+        - mountPath: /piebot/_config.py
+          subPath: _config.py
+          name: cfgvolume
+        startupProbe:
+          httpGet:
+            path: /metrics
+            port: prom-port
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /metrics
+            port: prom-port
+          initialDelaySeconds: 3
+          periodSeconds: 3
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "250m"
+            ephemeral-storage: "1M"
+          limits:
+            memory: "256Mi"
+            cpu: "500m"
+            ephemeral-storage: "1M"
+        securityContext:
+          readOnlyRootFilesystem: true
+      volumes:
+      - name: cfgvolume
+        configMap:
+          name: config
+          defaultMode: 0600
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: crypto
+  name: piebot-service
+  labels:
+    app: piebot
+spec:
+  type: NodePort
+  selector:
+    app: piebot
+  ports:
+    - protocol: TCP
+      nodePort: 30900
+      # You can query a Prometheus endpoint here
+      port: 19000
+
