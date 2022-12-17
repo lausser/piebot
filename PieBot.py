@@ -202,8 +202,7 @@ def rebalance(pairs):
     del buy_orders_data
     del sell_orders_data
     total_portfolio_value = get_portfolio_value(pairs, True)
-    print("Total portfolio value is {:.4f}USDT ({:.4f}stable)".format(total_portfolio_value, total_usdt_value))
-    print("Total portfolio value is {}USDT".format(total_portfolio_value))
+    print("Total portfolio value is {:.4f}USDT".format(total_portfolio_value))
     gc.collect()
 
     print(colored("Waiting to be called...", "cyan"))
