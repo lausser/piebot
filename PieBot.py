@@ -73,7 +73,7 @@ def buy(pairs):
     else:
         print(colored("Not enough USDT available (have {}, need {})".format(total_usdt_available, required_usdt), "yellow"))
     total_portfolio_value = get_portfolio_value(pairs, True)
-    print("Total portfolio value is {}USDT".format(total_portfolio_value))
+    print("Total portfolio value is {:.4f}USDT ({:.4f}stable)".format(total_portfolio_value, total_usdt_value))
 
     gc.collect()
 
