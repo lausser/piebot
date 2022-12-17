@@ -43,6 +43,7 @@ data:
         ("SOL", "SOL_USDT"),
         ("UNI", "UNI_USDT"),
     ]
+    # I knew you would copy the list and not even remove the shitcoins :-)
     
     # Sets after how many hours each task should repeat
     buy_frequency = 2
