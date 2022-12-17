@@ -127,11 +127,11 @@ spec:
           requests:
             memory: "128Mi"
             cpu: "250m"
-            ephemeral-storage: "1M"
+            ephemeral-storage: "10M"
           limits:
             memory: "256Mi"
             cpu: "500m"
-            ephemeral-storage: "1M"
+            ephemeral-storage: "10M"
         securityContext:
           readOnlyRootFilesystem: true
       volumes:
