@@ -136,7 +136,7 @@ def order_buy(pair, notional):
     notional = "%0.*f" % (price_precision, notional)
 
     order_buy_request = {
-        "id": 100,
+        "id": time.time_ns(),
         "method": "private/create-order",
         "api_key": api_key,
         "params": {
@@ -165,7 +165,7 @@ def order_sell(pair, quantity):
     quantity = "%0.*f" % (quantity_precision, quantity)
 
     order_sell_request = {
-        "id": 100,
+        "id": time.time_ns(),
         "method": "private/create-order",
         "api_key": api_key,
         "params": {
