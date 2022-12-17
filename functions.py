@@ -286,7 +286,7 @@ def pre_flight_checks():
         # The bot can connect to the account, has been started, and is waiting to be called
         print(colored("Pre-flight checks successful", "green"))
         for position in get_account_details():
-            print("{:<10s} {:20.4f} {:10.4f} = {:10.2f} {:s}".format(position["coin"], position["balance"], float(position["price"]), float(position["balance"]) * float(position["price"]), position["state"]))
+            print("{:<10s} {:20.4f} {:10.8f} = {:10.2f} {:s}".format(position["coin"], position["balance"], float(position["price"]), float(position["balance"]) * float(position["price"]), position["state"]))
 
     else:
         # Could not connect to the account
