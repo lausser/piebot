@@ -84,7 +84,7 @@ spec:
         fsGroup: 20000
       containers:
       - name: piebot
-        image: lausser/piebot:1.0.37
+        image: lausser/piebot:1.0.38
         imagePullPolicy: Always
         command: ["/usr/local/bin/python"]
         args: ["-u", "/piebot/PieBot.py"]
