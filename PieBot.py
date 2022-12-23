@@ -118,7 +118,7 @@ def rebalance(pairs):
             if difference >= min_order_value:
                 if uses_threshold:
                     difference_percentage = (((pair_value - target_per_coin) / target_per_coin) * 100)
-                    print("difference+ of {} is {:.2f} ({:.2f}%%)".format(pair[0], difference, difference_percentage))
+                    print("difference+ of {} is {:.2f} ({:.2f}%)".format(pair[0], difference, difference_percentage))
 
                     if difference_percentage >= (rebalance_threshold * 100):
                         order_value = difference / coin_price
@@ -135,7 +135,7 @@ def rebalance(pairs):
             if difference >= min_order_value:
                 if uses_threshold:
                     difference_percentage = 100 if pair_value == 0 else (((target_per_coin - pair_value) / pair_value) * 100)
-                    print("difference- of {} is {:.2f} ({:.2f}%%)".format(pair[0], difference, difference_percentage))
+                    print("difference- of {} is {:.2f} ({:.2f}%)".format(pair[0], difference, difference_percentage))
 
                     if difference_percentage >= (rebalance_threshold * 100):
                         order_value = difference
