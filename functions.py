@@ -69,20 +69,28 @@ def get_coin_balance(coin):
                                           headers={"Content-type": "application/json"},
                                           data=json.dumps(sign_request(req=coin_balance_request)))
     coin_balance_data = json.loads(coin_balance_response.content)
-    coin_total_balance = coin_balance_data["result"]["accounts"][0]["available"]
+    if not coin_balance_data["result"]["accounts"]:
+        coin_total_balance = 0
+        error = True
+    else:
+        coin_total_balance = coin_balance_data["result"]["accounts"][0]["available"]
+        error = False
 
-    return coin_total_balance
+    return coin_total_balance, error
 
 
 # Gets the price of a coin pair
 def get_coin_price(pair):
     get_price_response = requests.get("https://api.crypto.com/v2/public/get-ticker?instrument_name=" + pair)
+    error = False
     ticker = json.loads(get_price_response.content)
+    if "message" in ticker and ticker["message"] == "Invalid instrument_name":
+        return 0.0, True
     coin_price = ticker["result"]["data"][0]["b"]
     if coin_price == None:
         # there is no bid at this moment, take latest trade's price
         coin_price = ticker["result"]["data"][0]["a"]
-    return float(coin_price)
+    return float(coin_price), error
 
 
 # Gets the details of a coin pair
@@ -110,16 +118,16 @@ def get_portfolio_value(pairs, include_usdt):
 
     for pair in pairs:
         # Gets the total number of coins for this coin pair
-        coin_balance = get_coin_balance(pair[0])
+        coin_balance, balance_error = get_coin_balance(pair[0])
 
         # Gets the current price for this coin pair
-        coin_price = get_coin_price(pair[1])
+        coin_price, price_error = get_coin_price(pair[1])
 
         total_balance = total_balance + (coin_balance * coin_price)
 
     if include_usdt:
         # Get the total balance of USDT and add it to the current collected balance
-        usdt_total_balance = get_coin_balance("USDT")
+        usdt_total_balance, usdt_error = get_coin_balance("USDT")
 
         total_balance = total_balance + usdt_total_balance
 

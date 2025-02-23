@@ -93,8 +93,12 @@ def rebalance(pairs):
     total_portfolio_value = 0
 
     for pair in pairs:
-        coin_balance = get_coin_balance(pair[0])
-        coin_price = get_coin_price(pair[1])
+        coin_balance, balance_error = get_coin_balance(pair[0])
+        coin_price, price_error = get_coin_price(pair[1])
+        if balance_error or price_error:
+            # maybe this pair was removed from crypto.com
+            print(f"Please check if {pair} really exists")
+            continue
         pair_value = coin_balance * coin_price
 
         order_data.append([pair[0], pair[1], coin_price, pair_value])
