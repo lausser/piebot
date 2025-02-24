@@ -140,7 +140,7 @@ def get_portfolio_value(pairs, include_usdt):
 def order_buy(pair, notional):
     # Finds the required price precision for this coin pair
     pair_data = get_pair_details(pair)
-    price_precision = pair_data["price_decimals"]
+    price_precision = pair_data["quote_decimals"]
 
     # Converts the notional into a number with the correct number of decimal places
     notional = "%0.*f" % (price_precision, notional)
