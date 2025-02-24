@@ -75,7 +75,7 @@ def get_coin_balance(coin):
     else:
         quantity = coin_balance_data["result"]["data"][0]["position_balances"][0]["quantity"]
         reserved_qty = coin_balance_data["result"]["data"][0]["position_balances"][0]["reserved_qty"]
-        coin_total_balance = quantity - reserved_qty
+        coin_total_balance = float(quantity) - float(reserved_qty)
         error = False
 
     return coin_total_balance, error
