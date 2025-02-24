@@ -57,7 +57,7 @@ def get_available_portfolio_value(value):
 def get_coin_balance(coin):
     coin_balance_request = {
         "id": 100,
-        "method": "private/get-account-summary",
+        "method": "private/user-balance",
         "api_key": api_key,
         "params": {
             "currency": coin
@@ -65,15 +65,17 @@ def get_coin_balance(coin):
         "nonce": int(time.time() * 1000)
     }
 
-    coin_balance_response = requests.post("https://api.crypto.com/v2/private/get-account-summary",
+    coin_balance_response = requests.post("https://api.crypto.com/exchange/v1/private/user-balance",
                                           headers={"Content-type": "application/json"},
                                           data=json.dumps(sign_request(req=coin_balance_request)))
     coin_balance_data = json.loads(coin_balance_response.content)
-    if not coin_balance_data["result"]["accounts"]:
+    if not coin_balance_data["result"]["data"]:
         coin_total_balance = 0
         error = True
     else:
-        coin_total_balance = coin_balance_data["result"]["accounts"][0]["available"]
+        quantity = coin_balance_data["result"]["data"][0]["position_balances"][0]["quantity"]
+        reserved_qty = coin_balance_data["result"]["data"][0]["position_balances"][0]["reserved_qty"]
+        coin_total_balance = quantity - reserved_qty
         error = False
 
     return coin_total_balance, error
@@ -81,7 +83,7 @@ def get_coin_balance(coin):
 
 # Gets the price of a coin pair
 def get_coin_price(pair):
-    get_price_response = requests.get("https://api.crypto.com/v2/public/get-ticker?instrument_name=" + pair)
+    get_price_response = requests.get("https://api.crypto.com/exchange/v1/public/get-tickers?instrument_name=" + pair)
     error = False
     ticker = json.loads(get_price_response.content)
     if "message" in ticker and ticker["message"] == "Invalid instrument_name":
@@ -97,12 +99,12 @@ def get_coin_price(pair):
 def get_pair_details(pair):
     def get_instrument(instruments, name):
         for instrument in instruments:
-            if instrument["instrument_name"] == name:
+            if instrument["symbol"] == name:
                 return instrument
 
-    response = requests.get("https://api.crypto.com/v2/public/get-instruments")
+    response = requests.get("https://api.crypto.com/exchange/v1/public/get-instruments")
     data = json.loads(response.content)
-    instruments = data["result"]["instruments"]
+    instruments = data["result"]["data"]
 
     details = get_instrument(instruments, pair)
     if details == None:
@@ -156,7 +158,7 @@ def order_buy(pair, notional):
         "nonce": int(time.time() * 1000)
     }
 
-    order_buy_response = requests.post("https://api.crypto.com/v2/private/create-order",
+    order_buy_response = requests.post("https://api.crypto.com/exchange/v1/private/create-order",
                                   headers={"Content-type": "application/json"},
                                   data=json.dumps(sign_request(req=order_buy_request)))
 
@@ -185,7 +187,7 @@ def order_sell(pair, quantity):
         "nonce": int(time.time() * 1000)
     }
 
-    order_sell_response = requests.post("https://api.crypto.com/v2/private/create-order",
+    order_sell_response = requests.post("https://api.crypto.com/exchange/v1/private/create-order",
                                        headers={"Content-type": "application/json"},
                                        data=json.dumps(sign_request(req=order_sell_request)))
 
