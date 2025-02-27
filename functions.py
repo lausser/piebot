@@ -7,6 +7,9 @@ import sys
 from termcolor import colored as termcolor_colored
 import time
 import os
+import socket
+import requests.packages.urllib3.util.connection
+
 
 from _config import *
 
@@ -27,6 +30,19 @@ class StopSignal:
         print(colored("Shutting down...", "cyan"))
         print()
 
+
+def enforce_ipv4():
+    # crypto.com api keys, especially those with
+    # trading enabled, require a whitelist of ips.
+    # only ipv4 addresses are possible.
+    # as api.crypto.com has an A and an AAAA record
+    # and python requests prefers the ipv6 address,
+    # you will receive the detailed https response:
+    # {'code': 40101, 'message': 'Authentication failure'}
+    # forcing requests to speak ipv4 to the api solves this.
+    def allowed_gai_family():
+        return socket.AF_INET
+    requests.packages.urllib3.util.connection.allowed_gai_family = allowed_gai_family
 
 def colored(text, color):
     if not sys.stdin.isatty():
@@ -279,7 +295,7 @@ def pre_flight_checks():
     # Send a private request to test if the API key and API secret are correct
     init_request = {
         "id": 100,
-        "method": "private/get-account-summary",
+        "method": "private/user-balance",
         "api_key": api_key,
         "params": {
             "currency": "USDT"
@@ -287,7 +303,7 @@ def pre_flight_checks():
         "nonce": int(time.time() * 1000)
     }
 
-    init_response = requests.post("https://api.crypto.com/v2/private/get-account-summary",
+    init_response = requests.post("https://api.crypto.com/exchange/v1/private/user-balance",
                                   headers={"Content-type": "application/json"},
                                   data=json.dumps(sign_request(req=init_request)))
     init_status = init_response.status_code
@@ -309,7 +325,7 @@ def get_account_details():
     positions = []
     init_request = {
         "id": 100,
-        "method": "private/get-account-summary",
+        "method": "private/user-balance",
         "api_key": api_key,
         "params": {
 #            "currency": "USDT"
@@ -317,7 +333,7 @@ def get_account_details():
         "nonce": int(time.time() * 1000)
     }
 
-    init_response = requests.post("https://api.crypto.com/v2/private/get-account-summary",
+    init_response = requests.post("https://api.crypto.com/exchange/v1/private/user-balance",
                                   headers={"Content-type": "application/json"},
                                   data=json.dumps(sign_request(req=init_request)))
     init_status = init_response.status_code
@@ -326,19 +342,19 @@ def get_account_details():
         summary_data = init_response.json()
         ticker_request = {
             "id": 100,
-            "method": "private/get-account-summary",
+            "method": "private/user-balance",
             "api_key": api_key,
             "params": {},
             "nonce": int(time.time() * 1000)
         }
 
-        ticker_response = requests.get("https://api.crypto.com/v2/public/get-ticker",
+        ticker_response = requests.get("https://api.crypto.com/exchnage/v1/public/get-tickers",
                                   headers={"Content-type": "application/json"},
                                   data=json.dumps(sign_request(req=ticker_request)))
         ticker_status = ticker_response.status_code
         ticker_data = ticker_response.json()
-        for account in sorted(summary_data["result"]["accounts"], key=lambda x: x["currency"]):
-            if account["currency"] == "USDT":
+        for account in sorted(summary_data["result"]["data"], key=lambda x: x["i"]):
+            if account["i"] == "USDT":
                 positions.append({
                     "account": account_name,
                     "coin": "USDT",
